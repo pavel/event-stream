@@ -1,7 +1,7 @@
 {
   "name": "event-stream",
   "version": "1.0.0",
-  "description": "text/event-stream parser implementation",
+  "description": "text/event-stream parser implementation for Node.js",
   "main": "build/eventstream.js",
   "scripts": {
     "edit": "alm",
