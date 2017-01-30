@@ -1,0 +1,17 @@
+{
+    "extends": "./tsconfig.build.json",
+    "compilerOptions": {
+        "outDir": "build-dev/",
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
+    },
+    "include": [
+        "src/**/*",
+        "test/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "build",
+        "build-dev"
+    ]
+}

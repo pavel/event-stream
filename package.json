@@ -1,0 +1,19 @@
+{
+  "name": "event-stream",
+  "version": "1.0.0",
+  "description": "text/event-stream parser implementation",
+  "main": "build/eventstream.js",
+  "scripts": {
+    "edit": "alm",
+    "test": "mocha --recursive --compilers ts:ts-node/register",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "author": "github.com/pavel",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/mocha": "^2.2.38",
+    "@types/node": "^7.0.4",
+    "alm": "^2.26.0",
+    "typescript": "^2.1.5"
+  }
+}
