@@ -1,6 +1,6 @@
 import { Transform } from "stream"
 
-const commentsRe = /^:.*\n/mg
+const fieldRe = /^data.*\n\n?|^id.*\n\n?|^reply.*\n\n?|^event.*\n\n?/mg
 
 function isSupportedField(field: string): boolean {
 	switch (field) {
@@ -38,11 +38,12 @@ class Parser extends Transform {
 	}
 
 	private _transformBlock(block) {
-		block = block.trim()
-		if (block === "") {
+		// Eliminates unsupported fields and comments
+		block = block.match(fieldRe)
+		if (block === null) {
 			return []
 		}
-		const groups = block.split("\n\n")
+		const groups = block.join("").trim().split("\n\n")
 		return groups.map((group): MessageEvent => {
 			const lines: string[] = group.split("\n")
 			const fields = lines.map((line) => {
@@ -79,7 +80,7 @@ class Parser extends Transform {
 
 	protected _transform(chunk: any, encoding: string, callback: Function): void {
 		chunk = chunk.toString(encoding !== "buffer" ? encoding : "utf-8")
-		const data = `${this._buf}${chunk}`.replace(commentsRe, "")
+		const data = `${this._buf}${chunk}`
 		const lastEventBoundary = data.lastIndexOf("\n\n") + 1
 		if (lastEventBoundary === 0) {
 			this._buf = data
@@ -95,12 +96,8 @@ class Parser extends Transform {
 	}
 
 	protected _flush(callback: Function) {
-		const events = this._transformBlock(this._buf)
+		this._transform("", "utf-8", callback)
 		this._buf = ""
-		events.forEach((event) => {
-			this.push(event)
-		})
-		callback()
 	}
 
 }

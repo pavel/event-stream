@@ -76,7 +76,7 @@ describe("event stream", () => {
 		parser.write(" some text")
 		parser.write("\n")
 		parser.write("\nda")
-		parser.write("ta: some text")
+		parser.write("ta: some text\n\n")
 		parser.on("end", () => {
 			assert.equal(eventCount, 2)
 			done()
@@ -118,9 +118,19 @@ describe("event stream", () => {
 		parser.on("data", () => {
 			eventCount++
 		})
-		parser.write("data: line1\n\n")
+		// Based on an example from https://www.w3.org/TR/eventsource/#event-stream-interpretation.
+		parser.write(":comment \n\n")
+		parser.write("data\n\n")
+		parser.write(":comment \n")
+		parser.write("data\n")
+		parser.write("data\n\n")
+		// As per spec ");" is treated as a field name.
+		// As this field name is not supported, there should be no event fired
+		parser.write(");\n\n")
+		// As stated in the w3c spec: "The last block is discarded because it is not followed by a blank line."
+		parser.write("data:\n")
 		parser.on("end", () => {
-			assert.equal(eventCount, 1)
+			assert.equal(eventCount, 2)
 			done()
 		})
 		parser.end()
