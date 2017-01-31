@@ -5,18 +5,7 @@ var __extends = (this && this.__extends) || function (d, b) {
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
 var stream_1 = require("stream");
-var commentsRe = /^:.*\n/mg;
-function isSupportedField(field) {
-    switch (field) {
-        case "event":
-        case "data":
-        case "id":
-        case "retry":
-            return true;
-        default:
-            return false;
-    }
-}
+var fieldRe = /^data.*\n\n?|^id.*\n\n?|^reply.*\n\n?|^event.*\n\n?/mg;
 function getFieldValue(fields, name) {
     var matchingFields = fields.filter(function (_a) {
         var field = _a.field;
@@ -35,11 +24,12 @@ var Parser = (function (_super) {
         return _this;
     }
     Parser.prototype._transformBlock = function (block) {
-        block = block.trim();
-        if (block === "") {
+        // Eliminates unsupported fields and comments
+        block = block.match(fieldRe);
+        if (block === null) {
             return [];
         }
-        var groups = block.split("\n\n");
+        var groups = block.join("").trim().split("\n\n");
         return groups.map(function (group) {
             var lines = group.split("\n");
             var fields = lines.map(function (line) {
@@ -53,9 +43,6 @@ var Parser = (function (_super) {
                     value = +value;
                 }
                 return { field: field, value: value };
-            }).filter(function (_a) {
-                var field = _a.field;
-                return isSupportedField(field);
             });
             var data = fields.filter(function (_a) {
                 var field = _a.field;
@@ -80,7 +67,7 @@ var Parser = (function (_super) {
     Parser.prototype._transform = function (chunk, encoding, callback) {
         var _this = this;
         chunk = chunk.toString(encoding !== "buffer" ? encoding : "utf-8");
-        var data = ("" + this._buf + chunk).replace(commentsRe, "");
+        var data = "" + this._buf + chunk;
         var lastEventBoundary = data.lastIndexOf("\n\n") + 1;
         if (lastEventBoundary === 0) {
             this._buf = data;
@@ -95,13 +82,8 @@ var Parser = (function (_super) {
         callback();
     };
     Parser.prototype._flush = function (callback) {
-        var _this = this;
-        var events = this._transformBlock(this._buf);
+        this._transform("", "utf-8", callback);
         this._buf = "";
-        events.forEach(function (event) {
-            _this.push(event);
-        });
-        callback();
     };
     return Parser;
 }(stream_1.Transform));
