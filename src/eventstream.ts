@@ -2,18 +2,6 @@ import { Transform } from "stream"
 
 const fieldRe = /^data.*\n\n?|^id.*\n\n?|^reply.*\n\n?|^event.*\n\n?/mg
 
-function isSupportedField(field: string): boolean {
-	switch (field) {
-		case "event":
-		case "data":
-		case "id":
-		case "retry":
-			return true
-		default:
-			return false
-	}
-}
-
 function getFieldValue(fields: any[], name: string) {
 	const matchingFields = fields.filter(({ field }) => field === name)
 	if (matchingFields.length === 0) {
@@ -57,8 +45,6 @@ class Parser extends Transform {
 					value = +value
 				}
 				return { field, value }
-			}).filter(({ field }) => {
-				return isSupportedField(field)
 			})
 			const data = fields.filter(({ field }) => {
 				return field === "data"
